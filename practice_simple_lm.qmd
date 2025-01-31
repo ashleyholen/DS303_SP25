@@ -1,7 +1,7 @@
 ---
 title: "Practice: Simple Linear Regression"
 author: 
-  - "Student Name"
+  - "Ashley Holen"
   - "DS303, SP25"
   - "Prof. Amber Camp"
 date: 1/17/25
@@ -34,7 +34,10 @@ What is the difference between *y* = *b~0~* + *b~1~x* and *y* = *mx* + *b*, and 
 
 #### Answer:
 
-(write your answer here)
+**Online, I found that between these two equations, there is no mathematical difference. The order in which the equation depends on the philosophy. *y* = *mx* + *b* is the standard equation of a line in Algebra, while *y* = *b~0~* + *b~1~x* is a statistical approach for the standard equation of a line. Algebraists prefer their method as it more closely follows the standard form of a polynomial: *\
+P*(*x*) = *a~n~x^n^ + a~n~*~-1~*x^n^*^-1^*+ ... + a*~1~*x + a*~0~. Statisticians prefer their method due to the fact that it follows the general form of the regression equation: *y = b*~0~ + *b*~1~*x + b*~2~*x*^2^ + ... + *b~n~x^n^*.** **Overall, "The two equations represent a difference in philosophy held by different disciplines in the mathematical community."**
+
+[**http://www.mathbits.com/MathBits/TISection/Statistics2/LinearDiffers.html**](http://www.mathbits.com/MathBits/TISection/Statistics2/LinearDiffers.html)
 
 ### Question 2
 
@@ -42,7 +45,15 @@ Think back to our class discussion and your previous studies in math. Tell me be
 
 #### Answer:
 
-(write your answer here)
+***y*** **= *b~0~* + *b~1~x***
+
+**y: dependent variable (response)**
+
+***b~0~*** **: intercept**
+
+***b~1~*** **: slope**
+
+**x: independent variable (predictor)**
 
 ## Let's try it
 
@@ -68,12 +79,42 @@ You can just call upon the data (it's already in the package). I'll get you star
 ```{r}
 head(Boston)
 
+# Data Exploration
+
+names(Boston) #column names 
+summary(Boston) #summary of whole dataset 
+
+# Histogram of Median Home Values 
+library(ggplot2)
+ggplot(data = Boston, aes(x = medv)) +
+  geom_histogram(bins = 30, fill = "blue", color = "black") +
+  labs(title = "Histogram of Median Home Values",
+       x = "Median Value",
+       y = "Frequency")
+
+# Average Median House Value
+mean(Boston$medv)
+
+# Scatter Plot of Age of Home vs. How Many Rooms it Has 
+ggplot(data = Boston, aes(x = age, y = rm)) +
+  geom_point(color = "red") +
+  labs(title = "Scatter Plot of Age vs. Rooms",
+       x = "Age",
+       y = "Rooms")
+
+# Scatter Plot of LSTAT vs MEDV
+ggplot(data = Boston, aes(x = medv, y = lstat)) +
+  geom_point(color = "darkgreen") +
+  labs(title = "",
+       x = "Median Home Value",
+       y = "Percent of Lower Status in Population")
+
 ```
 
 We learned in class that we can apply a simple linear regression using `lm`. Here is the basic format:
 
 ```{r}
-model <- lm(y ~ x, data=df)
+#model <- lm(y ~ x, data=df)
 ```
 
 ### Question 4
@@ -81,13 +122,13 @@ model <- lm(y ~ x, data=df)
 Use the above basic format to create a linear regression model to predict the **median home value** (medv) based on the **percentage of lower status population** (lstat), using the data from the 'Boston' dataset. Assign it to the variable `lm.model`.
 
 ```{r}
-
+lm.model <- lm(medv ~ lstat, data=Boston) # y = medv, x = lstat
 ```
 
 If you set it up right, you should be able to run your model name in the below code chunk and view the basic model output. Give it a try:
 
 ```{r}
-
+lm.model
 ```
 
 ### Question 5
@@ -96,7 +137,7 @@ What is your model output telling you?
 
 #### Answer
 
-(write your answer here)
+**This output provides quite a bit of information about the linear regression model created to predict the dependent variable, median home value (medv) based on the single independent variable, percentage of lower status population (lstat). The first thing that I notice is the slope value, the lstat variable, is negative. This means that this linear model is a decreasing line. For every 1 percentage (1%) increase of lstat, medv decreases by 0.95 (\$950). Additionally, the y intercept, also the maximum value of the line, is 34.55. This means that the highest possible medv is 34.55 (\$34,550) if the percentage of lower status population is 0%. Overall, this negative relationship demonstrates that as the proportion of lower status residents increases, home values tend to decline.**
 
 You can also try `summary(lm.model)`.
 
@@ -110,7 +151,7 @@ What additional information do you get from this summary of the model output?
 
 #### Answer
 
-(write your answer here)
+**Through the output of the summary feature, we are provided with many statistical insights. First there are residuals, which demonstrate the differences between the actual versus predicted values. We are then given the coefficients. The estimate is what we saw before from lm.model. We are also provided with the standard errors, t values, and p values. For model fit, we can look at adjusted r-square, which is 0.5432. This means that when looking at the overall variance of medv, 54.32% can be explained by lstat.**
 
 ## confint() and predict()
 
@@ -130,7 +171,7 @@ What do you think the above `confint()` and `predict()` information means? It's 
 
 #### Answer
 
-(write your answer here)
+**Looking at the coefficient estimate and confidence and prediction intervals, I can make a few inferences about the information that I am looking at. First I see a range from 33.45 to 35.66 I assume is for the medv value also our intercept, and there is also a range for lstat which is -1.03, to -0.87 which is our slope. This demonstrates where these coefficients are 95% likely to fall. Then looking at the predict function, we are given a fit, lower, and upper value. After looking online, I learned that the first set accounts for the confidence interval of the mean response, while the second set represents the wider prediction interval accounting for individual variability. Overall, there is a level of uncertainty within this model.**
 
 ## Visualizing
 
@@ -146,7 +187,13 @@ abline(lm.model)
 Can you convert the above code chunk to `ggplot`? Try below. Have fun with editing the appearance of your plot if you'd like :)
 
 ```{r}
+# Original Plot 
+# plot(Boston$lstat, Boston$medv)
+# abline(lm.model)
 
+ggplot(Boston, aes(x = lstat, y = medv)) + 
+  geom_point() +
+  geom_smooth(method = "lm") #, se = FALSE, color = "blue") 
 ```
 
 In a future class, we'll explore some diagnostic plots and what that means for evaluating models. For now, just run the below and have a look:
@@ -172,7 +219,7 @@ What variables are you interested in exploring using a linear regression? Just p
 
 #### Answer
 
-(write your answer here)
+**If I were to create an additional model using alternative x and y variables, I would choose to predict 'crim' which is per capita crime rate by town, based on 'lstat' which is the lower status of the population (percent). How does lower status effect crime rates in communities?**
 
 ### Question 10
 
@@ -182,8 +229,9 @@ Build and run your model, examine the model output:
 
 ```{r}
 
+lm.model.new <- lm(crim ~ lstat, data=Boston) # y = crim, x = lstat
 
-
+lm.model.new
 
 ```
 
@@ -193,7 +241,7 @@ Explain what you found in plain English. Do your best.
 
 #### Answer
 
-(write your answer here)
+**The output demonstrates that the crime rate when lstat is 0 is -3.33, which is out of context, but -3.33 is the intercept. This also shows that there is a positive slope of 0.5488, which says that for each percentage increase in lstat, there is an average 0.5488 increase of crime rates. Overall, due to the positive slope, as the lstat increases, so does crim.**
 
 ## The end!
 
