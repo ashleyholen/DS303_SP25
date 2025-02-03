@@ -246,3 +246,16 @@ Explain what you found in plain English. Do your best.
 ## The end!
 
 That's it for now. Please feel free to raise questions in class or via email!
+
+### Feb 3 - Classwork 
+
+Creating a multiple regression model that includes an interaction term and explain the model output in plain language below.
+
+```{r}
+lm.model.class<- lm(medv ~ crim * lstat, data=Boston)
+summary(lm.model.class)
+```
+
+I created a model that predicts medv, based on the interaction between crim and lstat. In all, looking at home value based on the combination of crime rate and lower status.
+
+Looking at the summary results, we are given the residuals, coefficients, significant codes, residual standard error, multiple r squared, and f stat. It can be seen that the intercept of this model is 35.02919. Then, the slopes of the variables are crim: -0.36221, lstat: -0.96841, and crim:lstat is 0.01447. So, interpreting this, when crim goes up 1, medv goes down -0.36221. When lstat goes up 1, medv goes down -0.96841. Lastly, when the interaction of crim and lstat go up by 1, medv goes up 0.01447.
