@@ -1,7 +1,7 @@
 ---
 title: "Practice: Non-linear Transformations of Predictors"
 author: 
-  - "Student Name"
+  - "Ashley Holen"
   - "DS303, SP25"
   - "Prof. Amber Camp"
 date: 2/5/25
