@@ -1,7 +1,7 @@
 ---
 title: "Practice: Non-linear Transformations of Predictors"
 author: 
-  - "Ashley Holen"
+  - "Student Name"
   - "DS303, SP25"
   - "Prof. Amber Camp"
 date: 2/5/25
@@ -40,7 +40,7 @@ library(tidyverse)
 
 ## Boston Housing Data
 
-Along with linear models, the `lm()` function can handle non-linear transformations of predictors too! For instance, if you have a predictor `lstat`, you can create a new predictor `lstat2` using `I(lstat^2)`. We use the `I()` function because the `^` symbol has a special role in formula objects, and wrapping it this way helps us use the standard R method to raise `lstat` to the power of 2. Now, let's run a regression of `medv` on both `lstat` and `lstat2`!
+Along with linear models, the `lm()` function can handle non-linear transformations of predictors too! For instance, if you have a predictor `lstat`, you can create a new predictor `lstat2` using `I(lstat^2)`. We use the `I()` function because the `^` symbol has a special role in formula objects, and wrapping it this way helps us use the standard R method to raise `lstat` to the power of 2. Now, let’s run a regression of `medv` on both `lstat` and `lstat2`!
 
 ```{r}
 data(Boston) # load the Boston data
