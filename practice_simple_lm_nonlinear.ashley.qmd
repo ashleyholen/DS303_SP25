@@ -1,7 +1,7 @@
 ---
 title: "Practice: Non-linear Transformations of Predictors"
 author: 
-  - "Student Name"
+  - "Ashley Holen"
   - "DS303, SP25"
   - "Prof. Amber Camp"
 date: 2/5/25
@@ -52,17 +52,17 @@ As review, here is the basic model.
 
 ```{r}
 # simple linear regression
-model <- lm(y ~ x, data=df)
+#model <- lm(y ~ x, data=df)
 
 # multiple linear regression
-model <- lm(y ~ x + z, data=df)
+#model <- lm(y ~ x + z, data=df)
 
 # multiple linear regression with an interaction term
-model <- lm(y ~ x * z, data=df)
+#model <- lm(y ~ x * z, data=df)
 
 # spelled out/long form of the above. they do the same thing
 # simple linear regression
-model <- lm(y ~ x + z + x:z, data=df)
+#model <- lm(y ~ x + z + x:z, data=df)
 ```
 
 ### Visualize first
@@ -70,7 +70,8 @@ model <- lm(y ~ x + z + x:z, data=df)
 Make a scatterplot!
 
 ```{r}
-
+ggplot(Boston, aes(x = medv, y = lstat)) +
+  geom_point()
 ```
 
 ### Fit the model with a quadratic term
@@ -109,8 +110,10 @@ ggplot(Boston, aes(x = lstat, y = medv)) +
 Build another plot adding the quadratic term).
 
 ```{r}
+ggplot(Boston, aes(x = lstat, y = medv)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x + I(x^2), color = "blue")
 
-  
 ```
 
 ### Higher order polynomials
@@ -133,13 +136,14 @@ The output here looks a little different from what we have been looking at. See 
 Below, compare `lm.fit5` with `lm.quad`. What do you find?
 
 ```{r}
-
+anova(lm.fit5, lm.quad)
 ```
 
 Try a higher order polynomial of your choice and compare with other models you've run. What is the best model for this data? (You can also try a logarithmic transformation using `log()`.)
 
 ```{r}
-
+lm.fit10 <- lm(medv ~ poly(lstat, 10), data = Boston)
+summary(lm.fit10)
 ```
 
 ### Your turn!
@@ -151,7 +155,9 @@ Continue using the Boston data set for now, but pick a couple other variables. A
 Make a scatterplot to visualize the relationship between your variables.
 
 ```{r}
-
+ggplot(Boston, aes(x = crim, y = medv)) +
+  geom_point() + 
+  geom_smooth(method = "lm", formula = y ~ log(x), color = "blue")
 ```
 
 ### Transform your predictors
@@ -159,5 +165,8 @@ Make a scatterplot to visualize the relationship between your variables.
 See if you can apply polynomials to find a better fit. Be sure to compare your model with the simple `lm()`.
 
 ```{r}
+lm.log <- lm(medv ~ log(crim), data = Boston)
+summary(lm.log)
 
+anova(lm.simple, lm.log)
 ```
