@@ -14,7 +14,7 @@ theme: spacelab
 
 This is an introduction to **simple linear regression**, a method used to model the relationship between two variables by fitting a straight line to the data. The goal is to see how one variable (the independent variable) affects another (the dependent variable).
 
-For example, you might predict a student’s test score (dependent variable) based on study hours (independent variable). Simple linear regression helps find a trend or regression line that best fits the data, allowing you to make predictions for varying study hours.
+For example, you might predict a student's test score (dependent variable) based on study hours (independent variable). Simple linear regression helps find a trend or regression line that best fits the data, allowing you to make predictions for varying study hours.
 
 Simple linear regression is useful for studying **cause-and-effect** or **making predictions**, especially when the relationship between the variables is linear. It works best with **continuous data**.
 
@@ -24,7 +24,7 @@ We talked a lot in class the other day about the basic regression equation. I pr
 
 *y* = *b~0~* + *b~1~x*
 
-Many of you quickly noticed the similarity between *y* = *b~0~* + *b~1~x* and *y* = *mx* + *b.* And you're right–they are both basically the same formula for a straight line. Is there any actual difference at all?
+Many of you quickly noticed the similarity between *y* = *b~0~* + *b~1~x* and *y* = *mx* + *b.* And you're right--they are both basically the same formula for a straight line. Is there any actual difference at all?
 
 Yes! Despite, again, basically being the same thing, the difference in notation depends on context (when we use the two and how we discuss them). See what you can find online about this, and feel free to discuss with those around you.
 
@@ -247,7 +247,7 @@ Explain what you found in plain English. Do your best.
 
 That's it for now. Please feel free to raise questions in class or via email!
 
-### Feb 3 - Classwork 
+### Feb 3 - Classwork
 
 Creating a multiple regression model that includes an interaction term and explain the model output in plain language below.
 
