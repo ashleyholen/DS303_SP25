@@ -233,7 +233,7 @@ Perform stepwise regression to find the best model for an outcome of your choice
 m.all <- lm(flipper_length_mm ~ ., data = penguins)
 #summary(m.all)
 
-stepwise_model <- step(m.all, direction = "both") #this gives an error
+#stepwise_model <- step(m.all, direction = "both") #this gives an error
 colSums(is.na(penguins)) #checking NAs per column 
 nrow(penguins) #checking num of rows, 344 
 
