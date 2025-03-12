@@ -1,0 +1,197 @@
+---
+title: "Vowel Analysis Final Report"
+author: 
+  - "Ashley Holen"
+  - "DS303, SP25"
+  - "Prof. Amber Camp"
+date: 3/14/25
+format: html
+toc: true
+editor: visual
+theme: spacelab
+---
+
+## Vowel Analysis Final Report
+
+### Load packages
+
+```{r, echo = FALSE, message = FALSE}
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(dplyr)
+
+# install.packages("phonR")
+library(phonR)
+```
+
+## Load data
+
+Load your personal data (make sure you update from P101 -\> your P#)
+
+```{r}
+# read in data
+P111 <- read_csv("data/P111.csv")
+
+# convert variables to factor where needed
+convert_to_factor <- function(df, cols) {
+  df[cols] <- lapply(df[cols], as.factor)
+  return(df)
+}
+
+P111 <- convert_to_factor(P111, c("ppt", "word", "ipa", "arpa", "onset", "offset", "environment", "real_word", "sex", "ethnicity", "birthplace", "home_state", "years_lived_hi", "L1", "exposure_langs_yn", "exposure_langs", "speak_other", "item_num", "rep"))
+
+# remove a couple words you won't be needing
+P111 <- P111 %>%
+  dplyr::filter(!word %in% c("cot", "caught")) # added dplyr to specify which 'filter' to use
+
+```
+
+Class data:
+
+```{r}
+# read in data
+all_data <- read_csv("data/DS303_combined.csv")
+
+# convert variables to factor where needed
+all_data <- convert_to_factor(all_data, c("ppt", "word", "ipa", "arpa", "onset", "offset", "environment", "real_word", "sex", "ethnicity", "birthplace", "home_state", "years_lived_hi", "L1", "exposure_langs_yn", "exposure_langs", "speak_other", "item_num", "rep"))
+
+# remove a couple words you won't be needing
+all_data <- all_data %>%
+  dplyr::filter(!word %in% c("cot", "caught"))
+
+```
+
+```{r}
+# additional exploration cleaning - adding column if from Hawaii or Saipan
+unique(all_data$birthplace)
+unique(all_data$home_state)
+table(all_data$home_state)
+sum(all_data$home_state %in% c('HI', 'Saipan')) #472
+sum(!(all_data$home_state %in% c('HI', 'Saipan'))) #807
+
+all_data <- all_data %>%
+  mutate(island = home_state %in% c('HI', 'Saipan'))
+
+```
+
+## Explain the Data
+
+(1 point)
+
+In paragraph form:
+
+This data was collected through both methods of a written voluntary survey, as well as a vocal assessment. Each member of our DS303: Modeling for Prediction class at CUH was asked to fill out a Google Form, including identifying personal information such as name, age, years in university, sex, ethnicity, birthplace, home state, years lived in HI, and primary and secondary language spoken. Then, each subject completed a vocal assessment, which was located in a DS Center office, with only the proctor Professor Camp present. Phrases appeared on the screen, and each subject was to say the phrase aloud into the microphone. The phrases were structured as "Say \_\_\_ again", with the word in the phrase changing every iteration, and appearing 2-3 times throughout the process. The words were carefully selected to isolate the speech of vowels, which is what we will be analyzing in this project.
+
+The data contains two files, individual data and class-wide data. Each subject was given their confidential personal data, but everyone in the class was given the anonyomized class data set. In the class data set, there are 26 columns and 1,279 rows, with 13 total participants' data included in the set.
+
+The data was processed in a speech analysis software called "Praat", completed by Professor Camp and 2 research interns. The raw data was cleaned and given variables included in the data set such as f0, f1, f2, duration, ipa, arpa, onset, offset, environment, and word. Additionally, words that were obviously mispronounced were taken out. Data was further processed in RStudio by converting the following variables to factors ("ppt", "word", "ipa", "arpa", "onset", "offset", "environment", "real_word", "sex", "ethnicity", "birthplace", "home_state", "years_lived_hi", "L1", "exposure_langs_yn", "exposure_langs", "speak_other", "item_num", "rep"). Also, the words "cot" and "caught" were removed from this analysis, due to its irrelevance in this context.
+
+I conducted further cleaning on the raw class data. I added a column labeled 'island', which contains Boolean data, stating 'TRUE' if the participant has either a home state of Hawaii or Saipan, or 'FALSE' if any other home state. This is crucial in the way that I have designed my study.
+
+## Variables of Interest
+
+(1 point)
+
+For this project, you will explore and analyze the [**class-wide data set**]{.underline}. In paragraph form:
+
+The purpose of this project overall is to analyze the individual unique speech of vowels throughout our DS303: Modeling for Prediction class at CUH. We will deploy models and analyze their results to draw conclusions about the interaction of individual's personal traits and the processed data derived from their speech.
+
+My study will be on if being from a Pacific Island (Hawaii or Saipan as a self-proclaimed home state) effects speech of vowels, specifically f1 and f2 values. Thus, my variables of interest that I will be analyzing are: **home_state, f1, f2**. I hypothesize that home_state will be a strong predictor of f1 and f2 values and their interaction, as well I wonder if being from a Pacific Island and f1 and f2 values correlate in a positive or negative relationship, if any.
+
+## EDA and Vowel Plots
+
+(3 points)
+
+-   Generate two vowel plots using `phonR`: one for your own data, and one for class data
+
+```{r}
+# Class Plot 
+
+## remove outliers
+all_clean <- all_data %>%
+  group_by(ppt, ipa) %>% # notice that we added ppt as a grouping
+  mutate(
+    f1_z = (f1 - mean(f1)) / sd(f1),
+    f2_z = (f2 - mean(f2)) / sd(f2)
+  ) %>%
+  filter(abs(f1_z) <= 1.25, abs(f2_z) <= 1.25)
+
+# plot clean data
+with(all_clean, plotVowels(f1, f2, ipa, plot.tokens = TRUE, pch.tokens = ipa, cex.tokens = 1.2, alpha.tokens = 0.2, plot.means = TRUE, pch.means = ipa, cex.means = 2, var.col.by = ipa, ellipse.line = TRUE, pretty = TRUE))
+```
+
+```{r}
+# Personal Plot 
+
+## clean up outliers
+# convert f1 and f2 values to z-scores
+# z-scores help normalize the data
+P111_clean <- P111 %>%
+  group_by(ipa) %>% 
+  mutate(
+    f1_z = (f1 - mean(f1)) / sd(f1), # basic z-score transformation
+    f2_z = (f2 - mean(f2)) / sd(f2)
+  ) %>%
+  filter(abs(f1_z) <= 1.5, abs(f2_z) <= 1.5) # 2 to 3sd is typical for this type of data
+
+## plot the trimmed data
+with(P111_clean, plotVowels(f1, f2, ipa, plot.tokens = TRUE, pch.tokens = ipa, cex.tokens = 1.2, alpha.tokens = 0.2, plot.means = TRUE, pch.means = ipa, cex.means = 2, var.col.by = ipa, ellipse.line = TRUE, pretty = TRUE))
+
+# looks a lot cleaner, right?
+```
+
+-   In a couple sentences, state your observations. Do you see any patterns or differences?
+
+    -   
+
+-   Include at least one visual that supports your hypothesis/justifies your models below, and explain
+
+    ```{r}
+
+    ```
+
+## Model Selection and Justification
+
+(3 points)
+
+-   You will build and analyze **two different statistical models** to investigate the relationship between your predictors and outcome variable
+
+-   The two models should differ in some way (e.g., one could include an additional or interaction term while the other does not)
+
+-   What statistical models will you use to investigate the relationship between your predictors and outcome variable? (linear vs. logistic regression? mixed effects model?)
+
+-   Why did you select these models?
+
+-   Which variable(s) are included?
+
+```{r}
+
+```
+
+## Model Comparisons and Best Fit
+
+(3 points)
+
+-   Build and run both models and display their summaries
+
+-   Compare the two models, assess model fit, and determine the better fitting one
+
+```{r}
+
+```
+
+## Interpretation of Results
+
+(3 points)
+
+-   Interpret coefficients and significance
+-   Explain how the predictor variable(s) influence the outcome
+
+## Discussion and Conclusion
+
+(3 points)
+
+-   Summarize key findings
+-   Discuss implications
+-   Mention limitations
