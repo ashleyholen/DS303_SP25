@@ -97,7 +97,7 @@ For this project, you will explore and analyze the [**class-wide data set**]{.un
 
 The purpose of this project overall is to analyze the individual unique speech of vowels throughout our DS303: Modeling for Prediction class at CUH. We will deploy models and analyze their results to draw conclusions about the interaction of individual's personal traits and the processed data derived from their speech.
 
-My study will be on if f1 and f2 values are affected by accent developed by home state (Hawaii or Saipan versus continental United States. Thus, my variables of interest that I will be analyzing are: **home_state, f1, f2**. I hypothesize that home_state will be a strong predictor of f1 and f2 values and their interaction, as well I wonder if being from a Pacific Island and f1 and f2 values correlate in a positive or negative relationship, if any.
+My study will be on if f1 and f2 values are affected by accent developed by home state (Hawaii or Saipan versus continental United States). Thus, my variables of interest that I will be analyzing are: **home_state, f1, f2**. I hypothesize that home_state will be a strong predictor of f1 and f2 values and their interaction, as well I wonder if being from a Pacific Island and f1 and f2 values correlate in a positive or negative relationship, if any. Thus, I created the **island** Boolean variable (TRUE if home_state is Hawaii or Saipan, FALSE if home_state is not Hawaii or Saipan)
 
 ## EDA and Vowel Plots
 
@@ -269,5 +269,15 @@ Now, this mixed model is testing how the island variable influences f2, while co
 (3 points)
 
 -   Summarize key findings
+
+I sought out in this project to investigate if f1 and f2 values are affected by home state (Hawaii or Saipan versus continental United States). I made the hypothesis that f1 and f2 values would greatly differ based on home state (island or non island) based on accents which I have observed in real life, but this was not the case. I ran linear regression models and mixed models. The linear regression models showed that home state is statistically significant when predicting f1 and f2 values, but when accounting for variability for the individual participants since each one has multiple observations, it showed that the island variable was not statistically significant when predicting f1 and only marginally significant when predicting f2. It was also found that for the mixed models there is very high unexplained variability in the model. Thus, island is not as much of an influence as I hypothesized. Other variables would have a stronger influence on f1 and f2 values than if the home state is an island or not.
+
 -   Discuss implications
+
+These findings show that home state (island vs. mainland) may influence vowel production, but the effect is small and potentially overshadowed by other individual speaker differences. This shows that speech of vowels are affected by more than just geographic location, and perhaps social and linguistic environment, exposure to accents and dialects, and individual speech differences.
+
 -   Mention limitations
+
+There are various limitations within this project, the primary one being the limited size and speaker representation of the data set. There were only 13 participants, and the students who stated their home state was HI or Saipan were outnumbered by the number of students who listed a state within the continental US as their home state. Other demographics, such as age and gender may have a greater influence on f1 and f2. Also, the environment in which the data was collected was controlled, and may have affected speech by being more formal than in every day situations.
+
+If I were to expand on this project, I would add complexity and reconstruct the mixed models, investigating what the primary influences are if not home state.
