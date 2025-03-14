@@ -72,7 +72,7 @@ sum(!(all_data$home_state %in% c('HI', 'Saipan'))) #807
 
 all_data <- all_data %>%
   mutate(island = home_state %in% c('HI', 'Saipan'))
-
+all_data$island <- as.factor(all_data$island)
 ```
 
 ## Explain the Data
@@ -97,7 +97,7 @@ For this project, you will explore and analyze the [**class-wide data set**]{.un
 
 The purpose of this project overall is to analyze the individual unique speech of vowels throughout our DS303: Modeling for Prediction class at CUH. We will deploy models and analyze their results to draw conclusions about the interaction of individual's personal traits and the processed data derived from their speech.
 
-My study will be on if being from a Pacific Island (Hawaii or Saipan as a self-proclaimed home state) effects speech of vowels, specifically f1 and f2 values. Thus, my variables of interest that I will be analyzing are: **home_state, f1, f2**. I hypothesize that home_state will be a strong predictor of f1 and f2 values and their interaction, as well I wonder if being from a Pacific Island and f1 and f2 values correlate in a positive or negative relationship, if any.
+My study will be on if f1 and f2 values are affected by accent developed by home state (Hawaii or Saipan versus continental United States. Thus, my variables of interest that I will be analyzing are: **home_state, f1, f2**. I hypothesize that home_state will be a strong predictor of f1 and f2 values and their interaction, as well I wonder if being from a Pacific Island and f1 and f2 values correlate in a positive or negative relationship, if any.
 
 ## EDA and Vowel Plots
 
@@ -137,18 +137,24 @@ P111_clean <- P111 %>%
 
 ## plot the trimmed data
 with(P111_clean, plotVowels(f1, f2, ipa, plot.tokens = TRUE, pch.tokens = ipa, cex.tokens = 1.2, alpha.tokens = 0.2, plot.means = TRUE, pch.means = ipa, cex.means = 2, var.col.by = ipa, ellipse.line = TRUE, pretty = TRUE))
-
-# looks a lot cleaner, right?
 ```
 
 -   In a couple sentences, state your observations. Do you see any patterns or differences?
 
-    -   
+    Looking at the personal data (P111) vowel plot and comparing it to the class vowel plot, the first observation that I notice is that the overall structure of the personal plot closely follows the class plot. The personal plot though, contains less outliers and variance compared to the class plot. Thus, it can be assumed that the personal plot's speech for each vowel sound was very similar throughout the recording. The class plot has a significant amount of overlap within sounds, while the personal plot only has overlap between \^ and o. It must be also taken into consideration that the personal data only contains one subject speaking, while the class plot contains 13 subjects, including the subject of the personal plot.
 
 -   Include at least one visual that supports your hypothesis/justifies your models below, and explain
 
     ```{r}
+    # Scatter plot of f1 and f2 values based on home state 
+    ggplot(all_data, aes(f1, f2, color = island)) + 
+      geom_point()
 
+    ggplot(all_data, aes(f1, island, fill = island)) + 
+      geom_boxplot()
+
+    ggplot(all_data, aes(f2, island, fill = island)) + 
+      geom_boxplot()
     ```
 
 ## Model Selection and Justification
@@ -157,16 +163,55 @@ with(P111_clean, plotVowels(f1, f2, ipa, plot.tokens = TRUE, pch.tokens = ipa, c
 
 -   You will build and analyze **two different statistical models** to investigate the relationship between your predictors and outcome variable
 
+    See below
+
 -   The two models should differ in some way (e.g., one could include an additional or interaction term while the other does not)
+
+    See below
 
 -   What statistical models will you use to investigate the relationship between your predictors and outcome variable? (linear vs. logistic regression? mixed effects model?)
 
+    The statistical models that I chose to investigate are linear regression, as well as a mixed model. The linear regression model examines the relationship between F1/F2 values and the 'island' variable (whether a speaker is from Hawaii/Saipan or the continental U.S.). The mixed-effects model extends this by including random effects for individual speakers, accounting for speaker-specific variability.
+
 -   Why did you select these models?
+
+    I selected the these models to explore how home state (island or continental) effects speech variables such as f1 and f2, which relate to how vowels are pronounced. I chose the linear regression model, since it demonstrates a simple comparison between island or non-island home state speakers. The model assumes that f1 and f2 are directly influenced by the island variable, and allows the test of seeing if there is a statistically significant difference in vowel pronunciation between the two groups. I then chose a mixed-effects model since it accounts for variation of individual speakers. Since each speaker records multiple vowel samples, the data is not truly independent. The mixed model adds a random effect to control the variability between speakers.
 
 -   Which variable(s) are included?
 
-```{r}
+    *Predictor (Independent Variable)*
 
+    **`island`** (Boolean: TRUE for Hawaii/Saipan, FALSE for Mainland U.S.)
+
+    *Outcome (Dependent Variables)*
+
+    **`f1`** (The first formant, which inversely correlates to vowel height (tongue height)
+
+    **`f2`** (The second formant, which correlates to vowel frontness or backness
+
+    *Random Effects (Only used in Mixed Models)*
+
+    **`ppt`** (Speaker ID, to control for speaker variation)
+
+```{r}
+# MODELS (Linear vs Mixed)
+
+# f1 Linear Model
+f1.model <- lm(f1 ~ island, data=all_data)
+summary(f1.model)
+
+# f2 Linear Model
+f2.model <- lm(f2 ~ island, data=all_data)
+summary(f2.model)
+
+
+# f1 Mixed Model
+mixed_f1 <- lmer(f1 ~ island + (1 | ppt), data = all_data)
+summary(mixed_f1)
+
+# f2 Mixed Model
+mixed_f2 <- lmer(f2 ~ island + (1 | ppt), data = all_data)
+summary(mixed_f2)
 ```
 
 ## Model Comparisons and Best Fit
@@ -175,18 +220,49 @@ with(P111_clean, plotVowels(f1, f2, ipa, plot.tokens = TRUE, pch.tokens = ipa, c
 
 -   Build and run both models and display their summaries
 
+    See above
+
 -   Compare the two models, assess model fit, and determine the better fitting one
 
-```{r}
+    The AIC test balances model fit and complexity by penalizing models that are too complex, and suggests which model fits the data better relative to others but not if a model is more significant than the other. When running the AIC test of the f1 linear model versus the f1 mixed model, we get 16698.26 for linear and 16623.50 for mixed. The value is lower for mixed, showing that the model better fits the data for f1. Now, when running the AIC test of the f2 linear model versus the f2 mixed model, we get 18348.29 for linear and 18296.26 for mixed. The value is lower for mixed, showing that the model better fits the data for f1 and f2. Both of these are by a slight margin.
 
+    The BIC test is very similar to the AIC, but with a stronger penalty for model complexity. When running the BIC test of the f1 linear model versus the f1 mixed model, we get 16713.53 for linear and 16643.87 for mixed. Now, when running the BIC test of the f2 linear model versus the f2 mixed model, we get 18363.56 for linear and 18316.63 for mixed. The value is lower for mixed, showing that the model better fits the data for f1 and f2. Both of these are by a slight margin.
+
+    Overall, when predicting f1 or f2, the mixed model is a better fit, although not by much compared to the linear regression models.
+
+```{r}
+# Testing the Models
+
+#AIC Test - the lower the better
+AIC(f1.model, mixed_f1)
+AIC(f2.model, mixed_f2)
+
+#BIC Test - the lower the better
+BIC(f1.model, mixed_f1)
+BIC(f2.model, mixed_f2)
 ```
 
 ## Interpretation of Results
 
 (3 points)
 
--   Interpret coefficients and significance
--   Explain how the predictor variable(s) influence the outcome
+-   Interpret coefficients and significance and explain how the predictor variable(s) influence the outcome
+
+**f1 Linear Model: f1.model \<- lm(f1 \~ island, data=all_data)**
+
+In this linear regression model, what is being examined is how the island variable effects f1. First of all, the intercept is given as 603.187, which represents the predicted f1 value when island = false. This is highly statistically significant, meaning that this average value is not random. Next, the islandTRUE variable has a coefficient of -61.869. This means that if a speaker is from either Hawaii or Saipan, then their average f1 value is lower by about 61.869 Hz compared to continental US speakers. This shows that the island variable has a high effect on f1, since it is highly statistically significant. In terms of the context of this project, a lower f1 value suggests that vowels might be pronounced with a higher tongue position for the speakers with home state of Hawaii or Saipan in the data set. Next, looking at the residual standard error which is 252.4 Hz, and a large value, that there is large unexplained variation in f1. This measures how much the actual f1 values vary around the predicted values of the model. Lastly, the Multiple R Squared value is R² = 0.0138, which means that the model explains only 1.38% of the variation in f1.
+
+**f2 Linear Model: f2.model \<- lm(f2 \~ island, data=all_data)**
+
+In this linear regression model, what is being examined is how the island variable effects f2 now. First of all, the intercept is given as 1722.93, which represents the predicted f2 value when island = false. This is highly statistically significant, meaning that this average value is not random. Next, the islandTRUE variable has a coefficient of -127.07. This means that if a speaker is from either Hawaii or Saipan, then their average f2 value is lower by about 127.07 Hz compared to continental US speakers. This shows that the island variable has a high effect on f2, since it is highly statistically significant. In terms of the context of this project, a lower f2 value suggests that there is backer tongue position in vowel articulation for the speakers with home state of Hawaii or Saipan in the data set. Next, looking at the residual standard error which is 501.8 Hz, and a large value, that there is large unexplained variation in f2. This measures how much the actual f2 values vary around the predicted values of the model. Lastly, the Multiple R Squared value is R² = 0.01472, which means that the model explains only 1.47% of the variation in f2.
+
+**f1 Mixed Model: mixed_f1 \<- lmer(f1 \~ island + (1 \| ppt), data = all_data)**
+
+This mixed model is testing how the island variable influences f1, while controlling for random effects associated with each participant (ppt). The random effect, (1 \| ppt) means that each participant has their own intercept for f1. First, for the fixed effects, the intercept value is 603.07. This represents the predicted f1 value when island = false. It predicts the average f1 for continental US speakers in the data set to be 603.07 Hz. This is highly statistically significant, just confirming that this value is very different from 0. Next, the islandTRUE variable has a coefficient of -61.86. This means that if a speaker is from either Hawaii or Saipan, then their average f1 value is lower by about 61.86 Hz. Unlike the previous models, this is not statistically significant. This suggests that, after accounting for random variability between participants, there is no strong evidence that island significantly affects f1. The t-value of -1.414 indicates that the effect is quite small relative to the variability in the data. Also, looking at the random effects, high variance is demonstrated showing that there is high unexplained variability in the model. In all, this shows that individual differences in f1 are substantial and might be more important than the effect of island.
+
+**f2 Mixed Model: mixed_f2 \<- lmer(f2 \~ island + (1 \| ppt), data = all_data)**
+
+Now, this mixed model is testing how the island variable influences f2, while controlling for random effects associated with each participant (ppt). The random effect, (1 \| ppt) means that each participant has their own intercept for f2. First, for the fixed effects, the intercept value is 1723.24. This represents the predicted f2 value when island = false. It predicts the average f2 for continental US speakers in the data set to be 1723.24 Hz. This is highly statistically significant, just confirming that this value is very different from 0. Next, the islandTRUE variable has a coefficient of -132.00. This means that if a speaker is from either Hawaii or Saipan, then their average f2 value is lower by about 132 Hz. Unlike the previous models, this is marginally statistically significant. This suggests that, after accounting for random variability between participants, there is a very small amount of evidence that island significantly affects f2. The t-value of -1.799 indicates that the effect is quite small relative to the variability in the data. Also, looking at the random effects, high variance is demonstrated showing that there is high unexplained variability in the model. In all, this shows that individual differences in f2 are substantial and might be more important than the effect of island.
 
 ## Discussion and Conclusion
 
