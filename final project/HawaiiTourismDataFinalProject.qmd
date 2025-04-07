@@ -1,0 +1,19 @@
+---
+title: "Hawaii Tourism Data Final Project"
+author: "Ashley Holen"
+format: html
+editor: visual
+---
+
+## Loading in Data
+
+```{r}
+library(readr)
+data
+```
+
+## Cleaning Data
+
+```{r}
+
+```
