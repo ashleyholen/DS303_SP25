@@ -1,0 +1,50 @@
+---
+title: "Hawaii Tourism Data Final Project"
+author: "Ashley Holen"
+format: html
+editor: visual
+---
+
+## Loading in Data
+
+```{r}
+# load packages
+library(tidyverse)
+library(plotly)
+```
+
+```{r}
+# read in the data
+spending <- read_csv("Hawaii Tourism Data (from DBEDT Data Warehouse).csv")
+```
+
+```{r}
+# pivot and mutate from wide to long format
+spending_long <- spending %>%
+  pivot_longer(cols = starts_with("20"),
+               names_to = "Year",
+               values_to = "Spending") %>%
+  mutate(
+    Year = as.integer(Year),
+    Spending = as.numeric(Spending),
+    Group = as.factor(Group),
+    Category = as.factor(Category)
+  ) %>%
+  filter(!is.na(Spending))  # remove missing spending values
+```
+
+```{r}
+# view the cleaned data
+glimpse(spending_long)
+```
+
+```{r}
+# save your new dataframe
+write_csv(spending_long, "spending_long.csv")
+```
+
+## Data Exploration
+
+```{r}
+head(spending_long)
+```
