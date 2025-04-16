@@ -11,6 +11,8 @@ editor: visual
 # load packages
 library(tidyverse)
 library(plotly)
+library(dplyr)
+library(ggplot2)
 ```
 
 ```{r}
@@ -47,4 +49,55 @@ write_csv(spending_long, "spending_long.csv")
 
 ```{r}
 head(spending_long)
+```
+
+```{r}
+ggplot(spending_long, aes(x = Year, y = Spending, fill = Category)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Spending by Year and Category", x = "Year", y = "Spending") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(spending_long, aes(x = Spending, y = Category, fill = Category)) +
+  geom_bar(stat = "identity") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(spending_long, aes(x = Year, y = Spending, color = Group)) +
+  geom_point() +
+  theme_minimal()
+```
+
+```{r}
+summary_data <- spending_long %>%
+  group_by(Year, Group) %>%
+  summarize(total_spending = sum(Spending, na.rm = TRUE)) %>%
+  ungroup()
+
+ggplot(summary_data, aes(x = Year, y = total_spending, color = Group)) +
+  geom_point(size = 2) +
+  geom_line() +
+  labs(
+    x = "Year",
+    y = "Total Spending ($)",
+    title = "Total Spending Per Group Per Year"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+model <- lm(Spending ~ Group * Category, data = spending_long) 
+summary(model)
+```
+
+```{r}
+model <- lm(Spending ~ Group * Category + Year, data = spending_long) 
+summary(model)
+```
+
+```{r}
+model <- lm(Spending ~ Group + Category + Year, data = spending_long) 
+summary(model)
 ```
