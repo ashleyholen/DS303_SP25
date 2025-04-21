@@ -33,50 +33,85 @@ spending_long <- spending %>%
     Category = as.factor(Category)
   ) %>%
   filter(!is.na(Spending))  # remove missing spending values
+
+# keep ONLY levels that start with "Visitors from"
+filtered <- spending_long %>%
+  dplyr::filter(str_starts(Group, "Visitors from"))
 ```
 
 ```{r}
 # view the cleaned data
-glimpse(spending_long)
+glimpse(filtered)
 ```
 
 ```{r}
 # save your new dataframe
-write_csv(spending_long, "spending_long.csv")
+# write_csv(spending_long, "spending_long.csv")
+write_csv(filtered, "filtered.csv")
 ```
 
 ## Data Exploration
 
 ```{r}
-head(spending_long)
+head(filtered)
 ```
 
 ```{r}
-ggplot(spending_long, aes(x = Year, y = Spending, fill = Category)) +
+#here, find the top three contributors to spending
+#colnames(filtered)
+
+# Get top 3 groups by total spending
+top_groups <- filtered %>%
+  group_by(Group) %>%
+  summarize(total_spending = sum(`Spending`, na.rm = TRUE)) %>%
+  arrange(desc(total_spending)) %>%
+  slice_head(n = 3) %>%
+  pull(Group)
+
+# Subset original dataframe with only those top 3 groups
+filtered_top3 <- filtered %>%
+  filter(Group %in% top_groups)
+```
+
+```{r}
+#ggplot(spending_long, aes(x = Year, y = Spending, fill = Category)) +
+#  geom_bar(stat = "identity", position = "dodge") +
+#  labs(title = "Spending by Year and Category", x = "Year", y = "Spending") +
+#  theme_minimal()
+
+ggplot(filtered, aes(x = Year, y = Spending, fill = Category)) +
   geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Spending by Year and Category", x = "Year", y = "Spending") +
+  labs(title = "Spending by Year and Category (filtered data)", x = "Year", y = "Spending") +
   theme_minimal()
 ```
 
 ```{r}
-ggplot(spending_long, aes(x = Spending, y = Category, fill = Category)) +
+#ggplot(spending_long, aes(x = Spending, y = Category, fill = Category)) +
+#  geom_bar(stat = "identity") +
+#  theme_minimal()
+
+ggplot(filtered, aes(x = Spending, y = Category, fill = Category)) +
   geom_bar(stat = "identity") +
   theme_minimal()
 ```
 
 ```{r}
-ggplot(spending_long, aes(x = Year, y = Spending, color = Group)) +
+#ggplot(spending_long, aes(x = Year, y = Spending, color = Group)) +
+#  geom_point() +
+#  theme_minimal()
+
+ggplot(filtered, aes(x = Year, y = Spending, color = Group)) +
   geom_point() +
   theme_minimal()
 ```
 
 ```{r}
-summary_data <- spending_long %>%
+summary_filtered <- filtered %>%
   group_by(Year, Group) %>%
   summarize(total_spending = sum(Spending, na.rm = TRUE)) %>%
   ungroup()
 
-ggplot(summary_data, aes(x = Year, y = total_spending, color = Group)) +
+ggplot(summary_filtered, aes(x = Year, y = total_spending, color = Group)) +
   geom_point(size = 2) +
   geom_line() +
   labs(
@@ -84,20 +119,56 @@ ggplot(summary_data, aes(x = Year, y = total_spending, color = Group)) +
     y = "Total Spending ($)",
     title = "Total Spending Per Group Per Year"
   ) +
-  theme_minimal()
+  theme_minimal() 
 ```
 
 ```{r}
-model <- lm(Spending ~ Group * Category, data = spending_long) 
-summary(model)
+plot1 <- ggplot(filtered, aes(x = Year, y = Spending, color = Group)) +
+  stat_summary(fun = mean, geom = "line") +
+  facet_wrap(~ Category) +
+  theme_minimal() +
+  labs(title = "Yearly Trends in Spending by Group and Category")
+ggplotly(plot1)
+
+plot2 <- ggplot(filtered, aes(x = Year, y = Spending, color = Category)) +
+  stat_summary(fun = mean, geom = "line") +
+  facet_wrap(~ Group) +
+  theme_minimal() +
+  labs(title = "Yearly Trends in Spending by Category and Group")
+ggplotly(plot2)
 ```
 
 ```{r}
-model <- lm(Spending ~ Group * Category + Year, data = spending_long) 
-summary(model)
+# exploring with only the top 3 categories 
+
+summary_filtered_top3 <- filtered_top3 %>%
+  group_by(Year, Group) %>%
+  summarize(total_spending = sum(Spending, na.rm = TRUE)) %>%
+  ungroup()
+
+ggplot(summary_filtered_top3, aes(x = Year, y = total_spending, color = Group)) +
+  geom_point(size = 2) +
+  geom_line() +
+  labs(
+    x = "Year",
+    y = "Total Spending ($)",
+    title = "Total Spending Per Group Per Year for Top 3 Groups"
+  ) +
+  theme_minimal() 
 ```
 
 ```{r}
-model <- lm(Spending ~ Group + Category + Year, data = spending_long) 
-summary(model)
+model1 <- lm(Spending ~ Group + Year + Category, data = filtered)
+
+summary(model1)
+```
+
+```{r}
+#model <- lm(Spending ~ Group * Category + Year, data = spending_long) 
+#summary(model)
+```
+
+```{r}
+#model <- lm(Spending ~ Group + Category + Year, data = spending_long) 
+#summary(model)
 ```

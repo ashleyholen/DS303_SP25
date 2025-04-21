@@ -1,0 +1,298 @@
+---
+title: "Hawaii Tourism Analysis" 
+subtitle: "How Visitor Origin Affects Daily Spending"
+author: "Ashley Holen"
+institute: "Chaminade University of Honolulu"
+date: 4/23/25
+format:
+  revealjs: 
+    theme: moon
+editor: visual
+---
+
+```{r, echo = FALSE, warning=FALSE}
+# load packages
+library(tidyverse)
+library(plotly)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r, echo = FALSE, warning=FALSE}
+# read in the data
+spending <- read_csv("final project/Hawaii Tourism Data (from DBEDT Data Warehouse).csv")
+```
+
+```{r, echo = FALSE}
+# pivot and mutate from wide to long format
+spending_long <- spending %>%
+  pivot_longer(cols = starts_with("20"),
+               names_to = "Year",
+               values_to = "Spending") %>%
+  mutate(
+    Year = as.integer(Year),
+    Spending = as.numeric(Spending),
+    Group = as.factor(Group),
+    Category = as.factor(Category)
+  ) %>%
+  filter(!is.na(Spending))  # remove missing spending values
+
+# keep ONLY levels that start with "Visitors from"
+filtered <- spending_long %>%
+  dplyr::filter(str_starts(Group, "Visitors from"))
+```
+
+```{r, echo = FALSE}
+# view the cleaned data
+#glimpse(filtered)
+```
+
+```{r, echo = FALSE}
+# save your new dataframe
+# write_csv(spending_long, "spending_long.csv")
+write_csv(filtered, "filtered.csv")
+```
+
+```{r, echo = FALSE}
+#here, find the top three contributors to spending
+#colnames(filtered)
+
+# Get top 3 groups by total spending
+top_groups <- filtered %>%
+  group_by(Group) %>%
+  summarize(total_spending = sum(`Spending`, na.rm = TRUE)) %>%
+  arrange(desc(total_spending)) %>%
+  slice_head(n = 3) %>%
+  pull(Group)
+
+# Subset original dataframe with only those top 3 groups
+filtered_top3 <- filtered %>%
+  filter(Group %in% top_groups)
+```
+
+
+
+
+
+## Outline
+
+
+::: incremental
+-   Hawaii Tourism Quick Stats
+
+-   Research Question
+
+-   Data & Exploration
+
+-   Methods, Model Analysis, & Test Results
+
+-   Conclusion
+:::
+
+
+## Hawaii Tourism Quick Stats
+
+In 2024, Hawaii saw 
+
+::: incremental
+-   **9,689,113** visitors, +0.3% from 2023
+-   **$20.68 billion** total visitor expenditures, -0.2% from 2023
+-   **168,035** visitors arrived via cruise ship
+-   Oahu remains the most visited Hawaiian island, with **5,814,176** visitors
+:::
+
+## 
+
+Tourism in Hawaii serves as the largest industry and a major source of economic growth and tax revenue, and represents roughly a quarter of Hawaii's economy. On the other hand, tourism can strain resources leading to congestion, higher costs of living, and potential environmental damage. 
+
+![](/Users/ashleyholen/Desktop/Modeling for Prediction/DS303/final project/graphic.jpg){fig-align="center" width="300"}
+
+
+
+## Research Question
+
+::: {.fragment .highlight .center-align}
+How does visitor origin affect daily spending, controlling for year and spending category?
+:::
+
+
+## Data
+
+- State of Hawaii Department of Business, Economic Development & Tourism Data Warehouse
+- Selected filters of Groups By Market, Total Categories, Daily spending ($), and Annual frequency
+- 960 rows x 6 columns 
+- Variables: Category, Year, Group, Spending
+
+## Data
+- 12 visitor groups: Australia, Canada, China, Europe, Japan, Korea, Latin America, New Zealand, Oceania, Taiwan, US East, US West
+- (2009-2023)
+- 6 Categories: Food and beverage, Entertainment & Recreation, Transportation, Shopping, Lodging, All other expenses
+
+## Data 
+
+```{r}
+summary(filtered)
+```
+
+
+
+## Exploration
+
+```{r, echo=FALSE}
+summary_filtered <- filtered %>%
+  group_by(Year, Group) %>%
+  summarize(total_spending = sum(Spending, na.rm = TRUE)) %>%
+  ungroup()
+
+ggplot(summary_filtered, aes(x = Year, y = total_spending, color = Group)) +
+  geom_point(size = 2) +
+  geom_line() +
+  labs(
+    x = "Year",
+    y = "Total Spending ($)",
+    title = "Total Spending Per Group Per Year"
+  ) +
+  theme_minimal() 
+```
+
+## Exploration
+
+```{r, echo = FALSE}
+# exploring with only the top 3 categories 
+
+summary_filtered_top3 <- filtered_top3 %>%
+  group_by(Year, Group) %>%
+  summarize(total_spending = sum(Spending, na.rm = TRUE)) %>%
+  ungroup()
+
+ggplot(summary_filtered_top3, aes(x = Year, y = total_spending, color = Group)) +
+  geom_point(size = 2) +
+  geom_line() +
+  labs(
+    x = "Year",
+    y = "Total Spending ($)",
+    title = "Total Spending Per Group Per Year for Top 3 Groups"
+  ) +
+  theme_minimal() 
+```
+
+## Exploration
+
+```{r}
+ggplot(filtered, aes(x = Spending, y = Category, fill = Category)) +
+  geom_bar(stat = "identity") +
+  labs(
+    x = "Total Spending ($)",
+    y = "Category",
+    title = "Total Spending by Category"
+  ) +
+  theme_minimal()
+```
+
+## Methods
+
+For this analysis I will be using **multivariable linear regression models** in order to examine how multiple independent variables such as visitor group, year, and spending category simultaneously influence daily spending. 
+
+The first model looks at the individual effects of visitor group, year, and spending category on daily spending, understanding of their independent contributions. The second model was used to explore whether the relationship between visitor group and spending differs by category, by including an interaction term.
+
+
+## Model 1 - Multivariable Linear Regression 
+```{r, echo = TRUE}
+model1 <- lm(Spending ~ Group + Year + Category, data = filtered)
+summary(model1)
+```
+## Model 1 Interpretation: Overall Model Fit 
+
+- Residual standard error: **15.14** — the average deviation between the observed and predicted spending values.
+- Multiple R-squared: **0.7644** — ~76.4% of the variation in spending is explained by the model.
+- Adjusted R-squared: **0.7601** - adjusted for the number of predictors
+
+## Model 1 Interpretation: Variable Significance 
+
+The base group alphabetically is visitors from Australia
+
+- Canada: Spend $15.94 **less** on average 
+- China: Spend $16.93 **more**
+- Europe: Spend $14.29 **less** 
+- New Zealand: Spend $6.59 **less**
+- US East: Spend $9.35 **less**
+- US West: Spend $15.15 **less** 
+
+- Japan, Korea, Oceania, Latin America, Taiwan: not or marginally significantly different
+
+## Model 1 Interpretation: Variable Significance 
+
+The base group is Other spending 
+
+- Lodging: Adds $76.18 to spending
+- Entertainment & Recreation: Adds $11.26
+- Food and Beverage: Adds $36.22
+- Shopping: Adds $39.56
+- Transportation: Adds $10.91
+
+Time (Year) has a small but significant positive effect
+
+## Model 2 - Multivariable Linear Regression with Interaction between Group and Category
+This is looking at the possibility of groups spending more on different categories than others
+```{r, echo = TRUE}
+model2 <- lm(Spending ~ Group * Category + Year, data = filtered)
+summary(model2)
+```
+
+## Model 2 Interpretation: Overall Model Fit 
+
+- Residual standard error: **10.17** — the average deviation between the observed and predicted spending values
+- Multiple R-squared: **0.8999** - the model explains ~90% of the variance in visitor spending, which is very strong 
+- Adjusted R-squared: **0.8917** - adjusted for the number of predictors, still very strong
+
+## Model 2 Interpretation: Variable Significance
+
+- Visitors from China spend significantly more on shopping than other groups, about $12.839 per person per day on average 
+- Korean visitors spend more on Food & Beverage and Transportation
+- US and Canadian visitors spend less on shopping than average
+- Shopping and Food/Beverage are consistently high across many groups
+- There’s clear variation by group and category, justifying the interaction model
+
+## Model Testing
+Anova
+
+```{r, echo=TRUE}
+anova(model1, model2)
+```
+This demonstrates that Model 2, which includes the interaction between Group and Category is highly statistically significant. 
+
+## Model Testing
+
+Residual Standard Error
+```{r, echo=TRUE}
+#RSE (lower the better)
+summary(model1)$sigma
+summary(model2)$sigma
+```
+
+Root Mean Squared Error
+```{r, echo=TRUE}
+# RMSE model accuracy (lower the better)
+sqrt(mean(residuals(model1)^2))
+sqrt(mean(residuals(model2)^2))
+```
+
+## Conclusion 
+
+In conclusion, the project explored how visitor origin influences daily spending in Hawai‘i, while controlling for year and spending category. Using data from the State of Hawai‘i DBEDT from 2009 to 2023, two linear regression models were tested. The final model (which included an interaction between visitor group and spending category) showed a strong fit, indicating that both origin and category significantly shape visitor spending behaviors. Notably, spending patterns vary not only across visitor groups but also depending on the specific category of spending, such as lodging, shopping, or food and beverage.
+
+## Future Works 
+
+The inclusion of interaction terms helped capture these nuanced differences more effectively than a basic additive model. For future research, incorporating seasonality, inflation-adjusted spending, COVID, or number of travelers could provide deeper insight into trends over time. I would also look into a predictive model. 
+
+# Thank you! 
+
+Source: https://dbedt.hawaii.gov/visitor/tourismdata/
+
+
+
+
+
+
+
+
