@@ -101,11 +101,6 @@ In 2024, Hawaii saw
 -   Oahu remains the most visited Hawaiian island, with **5,814,176** visitors
 :::
 
-## 
-
-Tourism in Hawaii serves as the largest industry and a major source of economic growth and tax revenue, and represents roughly a quarter of Hawaii's economy. On the other hand, tourism can strain resources leading to congestion, higher costs of living, and potential environmental damage. 
-
-![](/Users/ashleyholen/Desktop/Modeling for Prediction/DS303/final project/graphic.jpg){fig-align="center" width="300"}
 
 
 
@@ -253,15 +248,15 @@ summary(model2)
 - Shopping and Food/Beverage are consistently high across many groups
 - There’s clear variation by group and category, justifying the interaction model
 
-## Model Testing
+## Model Comparison
 Anova
 
 ```{r, echo=TRUE}
 anova(model1, model2)
 ```
-This demonstrates that Model 2, which includes the interaction between Group and Category is highly statistically significant. 
+This demonstrates that adding the interaction between Group and Category in Model 2 significantly improves the model's fit compared to Model 1 
 
-## Model Testing
+## Model Evalutation
 
 Residual Standard Error
 ```{r, echo=TRUE}
